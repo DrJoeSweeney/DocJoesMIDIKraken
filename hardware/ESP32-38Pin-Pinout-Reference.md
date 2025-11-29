@@ -47,6 +47,67 @@ Pin 19: 5V                       Pin 20: SD0 (GPIO7)
 
 ---
 
+## ESP32-S 38P Harness Board Layout
+
+**Your specific board** has an expansion harness with clearly labeled pins. This section maps the harness labels to the MIDI Kraken design.
+
+```
+ESP32-S 38P Harness Board (Top View)
+
+Left Column (Yellow Headers)    Right Column (Red/Yellow Headers)
+CLK    ─────────────────────────────── GND
+SD0    ─────────────────────────────── SD3
+SD1    ─────────────────────────────── SD2
+P15    ─────────────────────────────── P13
+P2     ─────────────────────────────── GND
+P0     ─────────────────────────────── P12  ← SR DATA
+P4     ─────────────────────────────── P14  ← SR CLK
+P16    ─────────────────────────────── P27  ← SR LATCH
+P17    ─────────────────────────────── P26
+P5     ─────────────────────────────── P25
+P18    ─────────────────────────────── P33
+P19    ────────────────────────────────→ P32 ← I2C SDA
+GND    ─────────────────────────────── P35 ← I2C SCL (inverted on harness)
+P21    ────────────────────────────────→ P34 ← I2C SCL (actual GPIO22)
+Rx     ─────────────────────────────── SVN
+Tx     ─────────────────────────────── SVP
+P22    ─────────────────────────────── EN
+P23    ─────────────────────────────── 3V3
+GND    ─────────────────────────────── (end)
+
+Top Power Section:
+   DC3.5 (Barrel Jack)
+   USB-C Connector
+   Micro-USB Connector
+
+Power Rails:
+   3.3V > 5V  (Voltage regulation circuit with 47µF caps)
+   5V rail available for power input
+   GND rails on both sides
+```
+
+**IMPORTANT NOTE:** The harness board has a label inversion issue. The physical pin labeled "P35" on the right column is actually connected to the ESP32 module's GPIO34 (not GPIO35). For MIDI Kraken:
+- **Use the harness pin labeled "P34"** for I2C SCL (which is actually GPIO22)
+- **Use the harness pin labeled "P19"** for I2C INT (which is GPIO19)
+- **Use the harness pin labeled "P21"** for I2C SDA (which is GPIO21)
+
+### Harness Board MIDI Kraken Connections
+
+| Function | Harness Label | Actual GPIO | Connection |
+|----------|---------------|-------------|------------|
+| **SR LATCH** | **P27** | GPIO27 | All shift registers /PL (pin 1) |
+| **SR CLK** | **P14** | GPIO14 | All shift registers CP (pin 2) |
+| **SR DATA** | **P12** | GPIO12 | Last SR Q7 output (SR13 pin 9) |
+| **I2C SDA** | **P21** | GPIO21 | I2C data line + 4.7kΩ pull-up |
+| **I2C SCL** | **P34** ⚠️ | GPIO22 | I2C clock line + 4.7kΩ pull-up |
+| **I2C INT** | **P19** | GPIO19 | Interrupt to Teensy |
+| **Power 5V** | **5V** | 5V rail | 5V from LM7805 output |
+| **Ground** | **GND** | Ground | Multiple GND pins available |
+
+⚠️ **Critical:** Use harness label "P34" for I2C SCL, not "P35" (label mismatch on harness board).
+
+---
+
 ## MIDI Kraken Pin Assignments
 
 ### Shift Register Interface (SPI-like)
@@ -288,6 +349,7 @@ Downside: Can't remove ESP32 for reprogramming
 
 Print this for easy reference during assembly:
 
+### Generic ESP32 38-Pin DevKit
 ```
 ┌────────────────────────────────────────────┐
 │   ESP32 38-Pin MIDI Kraken Quick Ref      │
@@ -308,6 +370,30 @@ Print this for easy reference during assembly:
 │                                            │
 │ Optional:                                  │
 │   Pin 23 (IO2)  → Status LED + 1kΩ       │
+└────────────────────────────────────────────┘
+```
+
+### ESP32-S 38P Harness Board (Your Board)
+```
+┌────────────────────────────────────────────┐
+│   ESP32-S 38P Harness - MIDI Kraken       │
+├────────────────────────────────────────────┤
+│ Shift Registers (Right Column):           │
+│   P27 header → LATCH (all SR pin 1)      │
+│   P14 header → CLK (all SR pin 2)        │
+│   P12 header → DATA (SR13 pin 9)         │
+│                                            │
+│ I2C Interface (Left/Right Columns):        │
+│   P21 header → SDA + 4.7kΩ pull-up       │
+│   P34 header ⚠️ → SCL + 4.7kΩ (GPIO22)  │
+│   P19 header → INT to Teensy             │
+│                                            │
+│ Power (Top Headers):                       │
+│   5V header  → 5V from LM7805            │
+│   GND headers → Ground plane (multiple)   │
+│                                            │
+│ ⚠️ CRITICAL: Use P34 for SCL (not P35)    │
+│    Harness has label mismatch issue       │
 └────────────────────────────────────────────┘
 ```
 

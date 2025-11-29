@@ -217,7 +217,7 @@ Encoders/Buttons → Shift Registers (Parallel Load) → ESP32 (SPI Read) → Te
 
 ## ESP32 DevKit Connections
 
-> **Note:** Both 30-pin and 38-pin ESP32 DevKit boards are compatible. The GPIO numbers are the same; only the physical pin positions differ. For 38-pin pinout, see `ESP32-38Pin-Pinout-Reference.md`.
+> **Note:** Both 30-pin and 38-pin ESP32 DevKit boards are compatible. The GPIO numbers are the same; only the physical pin positions differ. For 38-pin pinout and ESP32-S 38P harness board labels, see `ESP32-38Pin-Pinout-Reference.md`.
 
 ### ESP32 DevKitC 30-Pin Pinout
 
@@ -258,6 +258,32 @@ Pin 28: IO16       ← Not connected
 Pin 29: IO4        ← Not connected
 Pin 30: IO2        ← Optional: Status LED via 1kΩ resistor
 ```
+
+### ESP32-S 38P Harness Board Connection Labels
+
+**If you're using the ESP32-S 38P with expansion harness board**, use these harness header labels instead of pin numbers:
+
+**Shift Register Signals (Right Column Headers):**
+```
+Harness "P27" ← Shift Register LATCH (SR pin 1, all chips)
+Harness "P14" ← Shift Register CLK (SR pin 2, all chips)
+Harness "P12" ← Shift Register DATA (SR pin 9, last chip only)
+```
+
+**I2C Signals (Left/Right Column Headers):**
+```
+Harness "P21" ← I2C SDA (via 4.7kΩ pull-up to 5V)
+Harness "P34" ⚠️ ← I2C SCL (via 4.7kΩ pull-up to 5V) [Actually GPIO22, label mismatch]
+Harness "P19" ← I2C INT line (to Teensy)
+```
+
+**Power (Top Power Section):**
+```
+Harness "5V"  ← Connect to 5V rail from LM7805
+Harness "GND" ← Connect to ground plane (multiple GND headers available)
+```
+
+**⚠️ Critical Note:** The harness board has a label inversion - the header labeled "P34" is actually GPIO22 (SCL), not GPIO34. Use "P34" for I2C SCL.
 
 ### Critical ESP32 Connections
 

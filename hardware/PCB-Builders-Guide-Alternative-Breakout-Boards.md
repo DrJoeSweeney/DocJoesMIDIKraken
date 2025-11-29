@@ -334,6 +334,7 @@ ESP32 GPIO outputs: 3.3V logic levels
 
 **Serial data flows through boards:**
 
+**Option A: Standard ESP32-DevKit:**
 ```
 ESP32 IO12 ──→ Board #4 Q7 (SR13 output)
                    ↓
@@ -352,10 +353,30 @@ ESP32 IO12 ──→ Board #4 Q7 (SR13 output)
                Board #1 DS (SR1 input) ──→ GND or 10kΩ to GND
 ```
 
+**Option B: ESP32-S 38P Harness Board:**
+```
+Harness "P12" ──→ Board #4 Q7 (SR13 output)
+                      ↓
+                  Board #4 DS (SR11 input)
+                      ↓
+                  Board #3 Q7 (SR10 output)
+                      ↓
+                  Board #3 DS (SR8 input)
+                      ↓
+                  Board #2 Q7 (SR7 output)
+                      ↓
+                  Board #2 DS (SR5 input)
+                      ↓
+                  Board #1 Q7 (SR4 output)
+                      ↓
+                  Board #1 DS (SR1 input) ──→ GND or 10kΩ to GND
+```
+
 ### Shared Control Signals
 
 **All boards share these signals (parallel connection):**
 
+**Option A: Standard ESP32-DevKit (no harness):**
 ```
 ESP32 IO27 (LATCH) ──┬──→ Board #1 /PL
                      ├──→ Board #2 /PL
@@ -378,7 +399,32 @@ Ground ──────────────┬──→ Board #1 GND
                      └──→ Board #4 GND
 ```
 
+**Option B: ESP32-S 38P Harness Board:**
+```
+Harness "P27" (LATCH) ──┬──→ Board #1 /PL
+                        ├──→ Board #2 /PL
+                        ├──→ Board #3 /PL
+                        └──→ Board #4 /PL
+
+Harness "P14" (CLK) ─────┬──→ Board #1 CLK
+                        ├──→ Board #2 CLK
+                        ├──→ Board #3 CLK
+                        └──→ Board #4 CLK
+
+3.3V Rail ──────────────┬──→ Board #1 VCC
+                        ├──→ Board #2 VCC
+                        ├──→ Board #3 VCC
+                        └──→ Board #4 VCC
+
+Ground (Harness "GND") ──┬──→ Board #1 GND
+                        ├──→ Board #2 GND
+                        ├──→ Board #3 GND
+                        └──→ Board #4 GND
+```
+
 **Important:** Use star topology or bus bar for power distribution to minimize voltage drop.
+
+> **Harness Board Note:** See `ESP32-38Pin-Pinout-Reference.md` for complete harness board pinout and connection labels.
 
 ---
 

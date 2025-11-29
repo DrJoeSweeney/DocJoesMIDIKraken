@@ -1,8 +1,10 @@
 # Getting Started: Your First MIDI Kraken Panel Build
 
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2025-01-29
-**Your Hardware**: ESP32-S 38-pin + 74HC165 breakout boards
+**Your Hardware**: ESP32-S 38-pin with expansion harness + 74HC165 breakout boards
+
+**Note:** This guide includes instructions for both standard ESP32-DevKit boards and the ESP32-S 38P with expansion harness. Follow "Option B" instructions throughout if you have the harness board.
 
 ---
 
@@ -95,15 +97,24 @@ Power on → Measure with multimeter:
 ### Step 2: Connect ESP32
 
 **Power ESP32 from 5V:**
+
+**Option A: Standard ESP32-DevKit (no harness):**
 ```
 +5V Rail ──→ ESP32 Pin 37 (VIN)
 GND Rail ──→ ESP32 Pin 38 (GND)
 GND Rail ──→ ESP32 Pin 31 (GND)
 ```
 
+**Option B: ESP32-S 38P with Harness Board (your board):**
+```
++5V Rail ──→ Harness "5V" header (top power section)
+GND Rail ──→ Harness "GND" headers (multiple available)
+```
+
 **Test:**
 ```
 ✅ ESP32 power LED lights up
+✅ DC3.5 barrel jack LED lights up (if present)
 ✅ Connect USB cable
 ✅ Upload "Blink" example sketch
 ✅ Verify ESP32 works
@@ -118,15 +129,32 @@ GND Rail  ──→ Breakout Board GND
 ```
 
 **Connect control signals:**
+
+**Option A: Standard ESP32-DevKit (no harness):**
 ```
 ESP32 Pin 11 (IO27) ──→ Board /PL (LATCH)
 ESP32 Pin 12 (IO14) ──→ Board CLK (CLOCK)
 ESP32 Pin 13 (IO12) ──→ Board Q7 (DATA OUT)
 ```
 
+**Option B: ESP32-S 38P with Harness Board (your board):**
+```
+Harness "P27" header ──→ Board /PL (LATCH)
+Harness "P14" header ──→ Board CLK (CLOCK)
+Harness "P12" header ──→ Board Q7 (DATA OUT)
+```
+
 **Add 10kΩ pull-up on LATCH:**
+
+**Option A: Standard ESP32-DevKit:**
 ```
 Board /PL pin ──┬──→ ESP32 Pin 11 (IO27)
+                └──→ 10kΩ resistor ──→ 3.3V Rail
+```
+
+**Option B: Harness Board:**
+```
+Board /PL pin ──┬──→ Harness "P27" header
                 └──→ 10kΩ resistor ──→ 3.3V Rail
 ```
 
