@@ -33,7 +33,7 @@ This guide describes the complete electrical design for a single 32-encoder pane
 **Panel Specifications:**
 - **32 × KY-050 rotary encoders** (quadrature, with integrated push button)
 - **4 × tactile push buttons** (standalone buttons)
-- **13 × 74HC165 shift registers** (8-bit PISO, DIP-16 package)
+- **13 × 74HCT165 shift registers** (8-bit PISO, DIP-16 package, TTL-compatible inputs)
 - **1 × ESP32 DevKit** (30-pin or 38-pin DIP-compatible dev board)
 - **1 × LM7805 voltage regulator** (5V, TO-220 package)
 - **Total I/O bits:** 100 (64 encoder signals + 32 encoder buttons + 4 standalone buttons)
@@ -57,7 +57,7 @@ Encoders/Buttons → Shift Registers (Parallel Load) → ESP32 (SPI Read) → Te
 | Qty | Part Number | Description | Package | Notes |
 |-----|-------------|-------------|---------|-------|
 | 1 | ESP32-DevKitC | ESP32 development board | 30-pin DIP | NodeMCU-32S or similar |
-| 13 | 74HC165N | 8-bit PISO shift register | DIP-16 | Must be HC (not HCT) |
+| 13 | 74HCT165N | 8-bit PISO shift register | DIP-16 | Must be HCT for 3.3V ESP32 compatibility |
 | 1 | LM7805 | 5V voltage regulator | TO-220 | 1A minimum |
 | 1 | 1N4001 | Rectifier diode (reverse polarity protection) | DO-41 | 1A, 50V |
 
@@ -83,7 +83,7 @@ Encoders/Buttons → Shift Registers (Parallel Load) → ESP32 (SPI Read) → Te
 
 | Qty | Value | Type | Voltage | Purpose |
 |-----|-------|------|---------|---------|
-| 13 | 100nF (0.1µF) | Ceramic | 50V | 74HC165 decoupling (one per chip) |
+| 13 | 100nF (0.1µF) | Ceramic | 50V | 74HCT165 decoupling (one per chip) |
 | 1 | 100nF (0.1µF) | Ceramic | 50V | ESP32 VCC decoupling |
 | 2 | 10µF | Electrolytic | 16V | LM7805 input/output filtering |
 | 1 | 470µF | Electrolytic | 16V | Bulk power supply filter |
@@ -126,7 +126,7 @@ Encoders/Buttons → Shift Registers (Parallel Load) → ESP32 (SPI Read) → Te
                                                                                             ↓
                                                                     ┌───────────────────────┴─────────────────────────┐
                                                                     ↓                       ↓                         ↓
-                                                            [ESP32 5V]            [13 × 74HC165 VCC]         [Pull-up resistors]
+                                                            [ESP32 5V]            [13 × 74HCT165 VCC]        [Pull-up resistors]
 ```
 
 **LM7805 Pin Connections:**
@@ -148,7 +148,7 @@ Encoders/Buttons → Shift Registers (Parallel Load) → ESP32 (SPI Read) → Te
 
 **Power Budget:**
 - ESP32: ~240mA peak
-- 13 × 74HC165: ~13mA (1mA each)
+- 13 × 74HCT165: ~13mA (1mA each)
 - Pull-up resistors: ~10mA
 - **Total:** ~263mA per panel (well within LM7805 1A limit)
 
@@ -288,10 +288,10 @@ ESP32 Pin 30 (IO2) ──→ [1kΩ resistor] ──→ LED Anode ──→ LED C
 
 ## Shift Register Chain
 
-### 74HC165 Pinout (DIP-16)
+### 74HCT165 Pinout (DIP-16)
 
 ```
-      74HC165N (DIP-16, top view)
+      74HCT165N (DIP-16, top view)
       ┌───────────────┐
  /PL  │1            16│ VCC
  CP   │2            15│ CE (clock enable, active low)
@@ -360,6 +360,9 @@ SR1-SR13 pin 16 (VCC) ──→ 100nF cap ──→ SR pin 8 (GND)
 ```
 
 **Placement:** As close as possible to each chip (within 5mm)
+
+**Why HCT instead of HC?**
+The 74HCT165 has TTL-compatible inputs (VIH = 2.0V) which work reliably with the ESP32's 3.3V GPIO outputs. The 74HC165 requires VIH = 3.5V (70% of 5V VCC), making it incompatible with 3.3V logic without level shifters.
 
 ---
 
@@ -634,7 +637,7 @@ Ground Plane ──────────────────→ I2C Conne
 
 ### Shift Register Decoupling
 
-**Every 74HC165 needs a 100nF ceramic capacitor between VCC and GND:**
+**Every 74HCT165 needs a 100nF ceramic capacitor between VCC and GND:**
 ```
 SR1-SR13 pin 16 (VCC) ──→ 100nF cap ──→ SR pin 8 (GND)
 ```
@@ -857,7 +860,7 @@ Encoder pins ──→ Shortest path ──→ Shift register pins
    - **TEST:** Verify 5V output before proceeding
 
 2. **Shift registers:**
-   - Solder all 13 × 74HC165 ICs (check orientation!)
+   - Solder all 13 × 74HCT165 ICs (check orientation!)
    - Solder 100nF decoupling caps (one per IC)
    - Solder shift register interconnect wires (Q7 to DS chain)
    - Solder common clock and latch connections
@@ -912,7 +915,7 @@ Net Classes:
 ### Schematic Entry
 
 **Symbol Library Requirements:**
-- 74HC165 (Logic_74xx library)
+- 74HCT165 (Logic_74xx library - same footprint as 74HC165)
 - LM7805 (Regulator_Linear library)
 - ESP32-DevKitC (create custom symbol or use generic 30-pin header)
 - Rotary encoder (Device library or custom)
@@ -1056,7 +1059,7 @@ File → Fabrication Outputs → Component Placement
 | Category | Total Quantity | Estimated Cost |
 |----------|----------------|----------------|
 | ESP32 DevKit | 1 | $5 |
-| 74HC165N | 13 | $6 (0.50 each) |
+| 74HCT165N | 13 | $6 (0.46 each) |
 | LM7805 | 1 | $0.50 |
 | KY-050 encoders | 32 | $16 (bulk discount) |
 | Tactile switches | 4 | $1 |
@@ -1079,10 +1082,12 @@ This guide provides complete electrical specifications for building a 32-encoder
 
 1. **Power:** 5V input, LM7805 regulation, 470µF + 10µF filtering
 2. **ESP32:** 30-pin DevKit, pins IO12/14/27 for shift registers, IO19/21/22 for I2C
-3. **Shift registers:** 13 × 74HC165, daisy-chained Q7→DS, 100nF decoupling each
+3. **Shift registers:** 13 × 74HCT165 (not HC!), daisy-chained Q7→DS, 100nF decoupling each
 4. **Encoders:** 32 × KY-050, CLK/DT/SW to shift register inputs, 10kΩ pull-ups
 5. **I2C:** 4.7kΩ pull-ups on SDA/SCL, INT line to Teensy
 6. **Layout:** 2-layer PCB, ground plane on bottom, signal routing on top
+
+**IMPORTANT:** Use 74HCT165 (TTL-compatible inputs) for reliable 3.3V ESP32 compatibility. The 74HC165 requires 3.5V input thresholds and will NOT work reliably with 3.3V logic.
 
 Follow this guide step-by-step for a reliable, professional-quality MIDI controller panel.
 
