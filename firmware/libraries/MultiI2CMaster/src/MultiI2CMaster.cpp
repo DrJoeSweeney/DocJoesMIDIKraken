@@ -12,15 +12,15 @@ MultiI2CMaster::MultiI2CMaster()
 }
 
 bool MultiI2CMaster::begin(uint32_t clockSpeed) {
-    // Initialize Wire (Bus 0) - ESP32 #1, #2
+    // Initialize Wire (Bus 0) - ESP32 #1, #2, #3
     Wire.begin();
     Wire.setClock(clockSpeed);
 
-    // Initialize Wire1 (Bus 1) - ESP32 #3, #4
+    // Initialize Wire1 (Bus 1) - ESP32 #4, #5, #6
     Wire1.begin();
     Wire1.setClock(clockSpeed);
 
-    // Initialize Wire2 (Bus 2) - ESP32 #5, #6, #7
+    // Initialize Wire2 (Bus 2) - ESP32 #7, #8, #9
     Wire2.begin();
     Wire2.setClock(clockSpeed);
 
@@ -143,18 +143,20 @@ bool MultiI2CMaster::resetSlave(uint8_t address) {
 }
 
 void MultiI2CMaster::initSlaves() {
-    // Bus 0 (Wire): ESP32 #1, #2
+    // Bus 0 (Wire): ESP32 #1, #2, #3 (Synth panels)
     m_slaves[0] = {0x08, &Wire, false, 0, 0, {}};
     m_slaves[1] = {0x09, &Wire, false, 0, 0, {}};
+    m_slaves[2] = {0x0A, &Wire, false, 0, 0, {}};
 
-    // Bus 1 (Wire1): ESP32 #3, #4
-    m_slaves[2] = {0x0A, &Wire1, false, 0, 0, {}};
+    // Bus 1 (Wire1): ESP32 #4, #5, #6 (Synth panels)
     m_slaves[3] = {0x0B, &Wire1, false, 0, 0, {}};
+    m_slaves[4] = {0x0C, &Wire1, false, 0, 0, {}};
+    m_slaves[5] = {0x0D, &Wire1, false, 0, 0, {}};
 
-    // Bus 2 (Wire2): ESP32 #5, #6, #7
-    m_slaves[4] = {0x0C, &Wire2, false, 0, 0, {}};
-    m_slaves[5] = {0x0D, &Wire2, false, 0, 0, {}};
+    // Bus 2 (Wire2): ESP32 #7, #8, #9 (Synth #7-8, FX #9)
     m_slaves[6] = {0x0E, &Wire2, false, 0, 0, {}};
+    m_slaves[7] = {0x0F, &Wire2, false, 0, 0, {}};
+    m_slaves[8] = {0x10, &Wire2, false, 0, 0, {}};
 }
 
 TwoWire* MultiI2CMaster::getWireForSlave(uint8_t address) {

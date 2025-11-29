@@ -1,24 +1,35 @@
-# MIDI Kraken - Complete Software Specification v2.0
+# MIDI Kraken - Complete Software Specification v3.0
 
 **Project**: DocJoesMIDIKraken
-**Version**: 2.0 Final
-**Date**: 2025-01-22
+**Version**: 3.0 - 32-Encoder Modular Panel Design
+**Date**: 2025-01-29
 **Status**: Design Complete, Ready for Implementation
+**Previous Version**: v2.0 (64-encoder design) archived in design-history/
 
 ---
 
 ## Executive Summary
 
-The **MIDI Kraken** is a professional-grade, highly configurable MIDI controller featuring 620+ controls, web-based configuration, snapshot morphing, and 128-session storage. It combines distributed ESP32 architecture with a Teensy 4.0 main controller to achieve <500µs latency and 2-3kHz scan rates.
+The **MIDI Kraken** is a professional-grade, highly configurable MIDI controller featuring 620+ controls, web-based configuration, snapshot morphing, and 128-session storage. It combines a modular 32-encoder panel architecture with distributed ESP32 processors and a Teensy 4.0 main controller to achieve <600µs latency and 5kHz scan rates per panel.
 
 **Key Statistics:**
 - **620+ controls**: 284 encoders, 316 buttons, 1 joystick
-- **<500µs latency**: Interrupt-driven communication
+- **<600µs latency**: Interrupt-driven communication with 9 I2C slaves
+- **5kHz scan rate**: Per 32-encoder panel (improved from 3kHz in v2.0)
+- **Modular design**: 8 × 32-encoder synth panels for easier PCB routing
 - **128 sessions**: Full configuration + 16 snapshots each
 - **4 virtual MIDI devices**: Up to 64 MIDI channels
 - **Web configurable**: Phone, tablet, or laptop
 - **14-bit MIDI**: High-resolution automation
-- **~$350 cost**: Exceptional value for component count
+- **~$385 cost**: Exceptional value for component count
+
+**v3.0 Design Changes:**
+- Switched from 64-encoder panels to 32-encoder panels
+- Enables 2-layer PCB design (vs 4-layer for 64-encoder)
+- Supports incremental prototyping (build/test one panel at a time)
+- 11 ESP32s total (8 synth + 1 FX + 1 snapshot + 1 WiFi)
+- Slight latency increase (+100µs) but still excellent performance
+- Previous 64-encoder design archived in design-history/
 
 ---
 
@@ -86,7 +97,11 @@ The **MIDI Kraken** is a professional-grade, highly configurable MIDI controller
 ### Hardware Overview
 
 The MIDI Kraken consists of:
-- **7 ESP32 microcontrollers** (peripheral processors)
+- **11 ESP32 microcontrollers** (9 I2C peripherals + 1 WiFi + 1 snapshot via alternate interface)
+  - 8 × 32-encoder synth panels
+  - 1 × FX panel (28 encoders)
+  - 1 × Snapshot panel (19 buttons)
+  - 1 × WiFi module
 - **1 Teensy 4.0** (main controller)
 - **284 KY-050 rotary encoders** (with push buttons)
 - **51 standalone buttons** (32 + 19 snapshot panel)
@@ -97,78 +112,86 @@ The MIDI Kraken consists of:
 
 **Total Control Points: 620+**
 
-### System Architecture
+**Architecture Philosophy:** Modular 32-encoder panels enable easier PCB design (2-layer vs 4-layer), incremental prototyping, and better fault tolerance while maintaining excellent performance (<600µs latency, 5kHz scan rate per panel).
+
+### System Architecture (32-Encoder Modular Design)
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│                    Teensy 4.0 Main                         │
-│  ┌──────────────┬──────────────┬──────────────┐          │
-│  │  I2C Master  │  MIDI Engine │  State Mgr   │          │
-│  │ (3 Buses)    │  (4 Devices) │  (619 Ctrls) │          │
-│  └──────┬───────┴──────┬───────┴──────┬───────┘          │
-│         │              │              │                    │
-│    ┌────▼────┐    ┌────▼────┐   ┌────▼────┐             │
-│    │Display  │    │ Session │   │  UART   │             │
-│    │  UI     │    │  Mgr    │   │ to WiFi │             │
-│    └─────────┘    └─────────┘   └────┬────┘             │
-└─────────────────────────────────────  │  ────────────────┘
-          │       │       │      │      │      │
-      I2C │   I2C │   I2C │  I2C │  I2C │  UART
-      Bus0│   Bus0│   Bus1│  Bus1│  Bus2│
-          │       │       │      │      │      │
-     ┌────▼──┐ ┌──▼────┐ ┌──▼────┐ ┌──▼────┐ ┌──▼────┐ ┌──▼────┐
-     │ESP32  │ │ESP32  │ │ESP32  │ │ESP32  │ │ESP32  │ │ESP32  │
-     │  #1   │ │  #2   │ │  #3   │ │  #4   │ │  #5   │ │  #6   │
-     │Plane1 │ │Plane2 │ │Plane3 │ │Plane4 │ │  FX   │ │ Snap  │
-     │64E+8B │ │64E+8B │ │64E+8B │ │64E+8B │ │ 28E   │ │19B    │
-     │25 SR  │ │25 SR  │ │25 SR  │ │25 SR  │ │11 SR  │ │3 SR   │
-     └───────┘ └───────┘ └───────┘ └───────┘ └───────┘ └───────┘
-                                                             │
-                                                        ┌────▼────┐
-                                                        │ ESP32   │
-                                                        │   #7    │
-                                                        │  WiFi   │
-                                                        │ WebSvr  │
-                                                        └────┬────┘
-                                                             │
-                                                        ┌────▼────┐
-                                                        │ SD Card │
-                                                        │ 16GB    │
-                                                        │128 Sess │
-                                                        └─────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                     Teensy 4.0 Main Controller                  │
+│   ┌──────────────┬──────────────┬──────────────┐               │
+│   │  I2C Master  │  MIDI Engine │  State Mgr   │               │
+│   │ (3 Buses)    │  (4 Devices) │  (619 Ctrls) │               │
+│   └──────┬───────┴──────┬───────┴──────┬───────┘               │
+│          │              │              │                         │
+│     ┌────▼────┐    ┌────▼────┐   ┌────▼────┐                  │
+│     │Display  │    │ Session │   │  UART   │                  │
+│     │  UI     │    │  Mgr    │   │ to WiFi │                  │
+│     └─────────┘    └─────────┘   └────┬────┘                  │
+└──────────────────────────────────────  │  ─────────────────────┘
+     │    │    │    │    │    │    │    │    │        │
+  I2C Bus 0    │    Bus 1    │    Bus 2 │    │     UART
+  (0x08-0x0A)  │ (0x0B-0x0D) │ (0x0E-0x10)  │
+     │    │    │    │    │    │    │    │    │        │
+  ┌──▼─┐┌─▼──┐┌▼──┐┌▼──┐┌▼──┐┌▼──┐┌▼──┐┌▼──┐┌▼──┐ ┌─▼────┐
+  │ESP ││ESP ││ESP││ESP││ESP││ESP││ESP││ESP││ESP│ │ESP32 │
+  │ #1 ││ #2 ││#3 ││#4 ││#5 ││#6 ││#7 ││#8 ││#9 │ │ #10  │
+  │Syn ││Syn ││Syn││Syn││Syn││Syn││Syn││Syn││FX │ │WiFi  │
+  │ A1 ││ A2 ││B1 ││B2 ││C1 ││C2 ││D1 ││D2 ││28E│ │WebSv │
+  │32E ││32E ││32E││32E││32E││32E││32E││32E││11S│ │SDCrd │
+  │+4B ││+4B ││+4B││+4B││+4B││+4B││+4B││+4B││   │ └──────┘
+  │13SR││13SR││13S││13S││13S││13S││13S││13S││   │
+  └────┘└────┘└───┘└───┘└───┘└───┘└───┘└───┘└───┘
 ```
 
 **Legend:**
 - E = Encoders
-- B = Buttons
+- B = Standalone Buttons
 - SR = Shift Registers (74HC165)
-- Sess = Sessions
+- Syn A1/A2 = Synth Plane A, Panel 1/2 (32 encoders each = 64 total)
+- FX = Effects section (Reverb, Delay, Chorus, Flange)
+- Note: Snapshot panel (19 buttons) not shown, may use shared bus or alternate interface
+
+**Key Changes from v2.0:**
+- Each synth plane split into 2 panels (32 encoders each)
+- 4 planes × 2 panels = 8 synth panels total
+- 13 shift registers per 32-encoder panel (vs 25 for 64-encoder)
+- 3 slaves per I2C bus (vs 2 per bus previously)
+- 9 I2C slaves total (vs 6 previously)
 
 ### Component Specifications
 
-#### ESP32 Modules (#1-7)
+#### ESP32 Modules (#1-11)
 
-**ESP32 #1-4 (Synth Planes):**
-- Function: Scan 64 encoders + 8 buttons
-- I/O: 200 bits via 25 shift registers
-- Scan rate: 2kHz
-- I2C slave addresses: 0x20, 0x21, 0x22, 0x23
-- INT lines: GPIO 14, 15, 16, 17 (Teensy)
+**ESP32 #1-8 (Synth Panels - 32 Encoders Each):**
+- Function: Scan 32 encoders + 32 encoder buttons + 4 standalone buttons
+- I/O: 100 bits via 13 shift registers (64 encoder signals + 36 button signals)
+- Scan rate: 5kHz (faster due to fewer controls)
+- I2C slave addresses:
+  - Bus 0: #1 (0x08), #2 (0x09), #3 (0x0A)
+  - Bus 1: #4 (0x0B), #5 (0x0C), #6 (0x0D)
+  - Bus 2: #7 (0x0E), #8 (0x0F)
+- Panel mapping:
+  - #1-2: Synth Plane A (OSC, ENV, FILT, LFO, MIX) - 64 encoders total
+  - #3-4: Synth Plane B (OSC, ENV, FILT, LFO, MIX) - 64 encoders total
+  - #5-6: Synth Plane C (OSC, ENV, FILT, LFO, MIX) - 64 encoders total
+  - #7-8: Synth Plane D (OSC, ENV, FILT, LFO, MIX) - 64 encoders total
 
-**ESP32 #5 (FX Section):**
-- Function: Scan 28 encoders
+**ESP32 #9 (FX Section):**
+- Function: Scan 28 encoders (Reverb, Delay, Chorus, Flange)
 - I/O: 84 bits via 11 shift registers
-- Scan rate: 4.7kHz
-- I2C slave address: 0x24
-- INT line: GPIO 18 (Teensy)
+- Scan rate: 6kHz
+- I2C slave address: 0x10 (Bus 2)
+- INT line: GPIO (Teensy)
 
-**ESP32 #6 (Snapshot Panel):**
+**ESP32 #10 (Snapshot Panel - Optional):**
 - Function: Scan 19 buttons
 - I/O: 19 bits via 3 shift registers
 - Scan rate: >10kHz
-- I2C slave address: 0x25 (Bus 2)
+- Connection: May share Bus 2 or use alternate interface
+- Note: Can be integrated with another panel to save an ESP32
 
-**ESP32 #7 (WiFi Module):**
+**ESP32 #11 (WiFi Module):**
 - Function: Web server, session storage
 - Connection: UART to Teensy (921600 baud)
 - Features:
@@ -177,6 +200,7 @@ The MIDI Kraken consists of:
   - WebSocket server
   - SD card interface (16GB)
   - 128 session storage
+  - OTA firmware updates
 
 #### Teensy 4.0 (Main Controller)
 
@@ -216,18 +240,19 @@ The MIDI Kraken consists of:
 
 **Component Power Draw:**
 - Teensy 4.0: ~100mA
-- 7 × ESP32: ~240mA each = 1,680mA
+- 11 × ESP32: ~240mA each = 2,640mA
 - TFT Display: ~150mA (with backlight)
 - 114 × 74HC165: ~1mA each = 114mA
 - 284 × Encoders: Pull-up resistors only (~minimal)
 - SD Card: ~50mA
-- **Total: ~2.1A @ 5V**
+- **Total: ~3.1A @ 5V**
 
 **Power Supply:**
-- Minimum: 5V 2.5A
-- Recommended: 5V 3A (with headroom)
+- Minimum: 5V 3.5A
+- Recommended: 5V 4A or 5A (with headroom)
 - Connector: Barrel jack (5.5mm × 2.1mm)
 - Regulation: Use buck converter if from 12V
+- Note: 4 additional ESP32s compared to v2.0 add ~1A to power requirements
 
 **Power Distribution:**
 - Star topology from main supply
@@ -243,18 +268,21 @@ The MIDI Kraken consists of:
 
 #### Bus Configuration
 
-**Teensy 4.0 - 3 I2C Buses:**
+**Teensy 4.0 - 3 I2C Buses (32-Encoder Design):**
 
-| Bus | ESP32s | Speed | Pull-ups |
-|-----|--------|-------|----------|
-| Bus 0 (Wire) | #1, #2 | 1MHz | 4.7kΩ |
-| Bus 1 (Wire1) | #3, #4 | 1MHz | 4.7kΩ |
-| Bus 2 (Wire2) | #5, #6 | 1MHz | 4.7kΩ |
+| Bus | ESP32s | Addresses | Speed | Pull-ups | Slaves |
+|-----|--------|-----------|-------|----------|--------|
+| Bus 0 (Wire) | #1, #2, #3 | 0x08, 0x09, 0x0A | 1MHz | 4.7kΩ | 3 |
+| Bus 1 (Wire1) | #4, #5, #6 | 0x0B, 0x0C, 0x0D | 1MHz | 4.7kΩ | 3 |
+| Bus 2 (Wire2) | #7, #8, #9 | 0x0E, 0x0F, 0x10 | 1MHz | 4.7kΩ | 3 |
+
+**Bus Utilization:** 38% (9 slaves / 24 max slaves)
 
 **Fast Mode+ (1MHz) chosen for:**
-- Higher throughput
-- Lower latency
-- Reduced bus utilization
+- Higher throughput (3× vs single bus)
+- Lower latency (<600µs typical)
+- Even load distribution (3 slaves per bus)
+- Reduced bus contention
 
 #### Communication Mode: Interrupt-Driven
 

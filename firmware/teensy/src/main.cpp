@@ -1,7 +1,17 @@
 /**
  * Teensy 4.0 Main Controller Firmware
  *
- * Receives events from 7 ESP32s via 3 I2C buses
+ * Receives events from 11 ESP32s (9 on I2C + 1 WiFi on UART)
+ * - 8 × 32-encoder synth panels (I2C 0x08-0x0F)
+ * - 1 × FX panel (I2C 0x10)
+ * - 1 × Snapshot panel (shared with Bus 2 or separate UART)
+ * - 1 × WiFi module (UART)
+ *
+ * 3 I2C Buses:
+ * - Bus 0: ESP32 #1, #2, #3 (0x08, 0x09, 0x0A)
+ * - Bus 1: ESP32 #4, #5, #6 (0x0B, 0x0C, 0x0D)
+ * - Bus 2: ESP32 #7, #8, #9 (0x0E, 0x0F, 0x10)
+ *
  * Manages state, snapshots, and sessions
  * Generates and sends USB MIDI messages
  */
@@ -100,13 +110,23 @@ void setup() {
     diagnostics.begin();
     Serial.println("Diagnostics initialized");
 
-    // Check ESP32 slave health
+    // Check ESP32 slave health (9 peripheral ESP32s on I2C)
     Serial.println("\nChecking ESP32 slave health:");
-    for (uint8_t addr = 0x08; addr <= 0x0E; addr++) {
+    for (uint8_t addr = 0x08; addr <= 0x10; addr++) {
+        const char* nodeType;
+        if (addr <= 0x0F) {
+            nodeType = "Synth Panel";
+        } else if (addr == 0x10) {
+            nodeType = "FX Panel";
+        } else {
+            nodeType = "Unknown";
+        }
+
         bool healthy = i2cMaster.isSlaveHealthy(addr);
-        Serial.printf("  ESP32 #%d (0x%02X): %s\n",
-            addr - 0x07, addr, healthy ? "OK" : "FAIL");
+        Serial.printf("  ESP32 #%d (0x%02X) [%s]: %s\n",
+            addr - 0x07, addr, nodeType, healthy ? "OK" : "FAIL");
     }
+    Serial.println("  ESP32 #11 (WiFi): UART interface");
 
     digitalWrite(LED_PIN, LOW);
     Serial.println("\nTeensy Main Controller ready!");

@@ -18,8 +18,12 @@
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
+// NOTE: This configuration is for a 32-encoder synth panel (8 total in system)
+// FX panel: 28 encoders, 11 shift registers, I2C 0x0C
+// Snapshot panel: 19 buttons, 3 shift registers, I2C 0x0D
+// Adjust values below for different node types before flashing
 
-// I2C Configuration (set to 0x08-0x0D depending on node)
+// I2C Configuration (set to 0x08-0x0B for synth panels, 0x0C for FX, 0x0D for snapshot)
 #define I2C_ADDRESS 0x08
 #define I2C_SDA_PIN 21
 #define I2C_SCL_PIN 22
@@ -29,11 +33,13 @@
 #define SR_MISO_PIN 12
 #define SR_SCK_PIN 14
 #define SR_LATCH_PIN 27
-#define SR_NUM_CHIPS 16  // Adjust per node
+#define SR_NUM_CHIPS 13  // 32-encoder synth panel: 100 bits = 13 chips
 
-// Control Configuration (adjust per node)
+// Control Configuration (32-encoder synth panel)
+// Layout: 32 encoders (64 bits) + 32 encoder buttons + 4 standalone buttons (36 bits)
+// Total: 100 bits across 13 shift registers
 #define NUM_ENCODERS 32
-#define NUM_BUTTONS 64
+#define NUM_BUTTONS 36  // 32 encoder buttons + 4 standalone buttons
 #define ENCODER_OFFSET 0
 #define BUTTON_OFFSET 64
 
@@ -54,7 +60,7 @@ Diagnostics diagnostics;
 
 void core0_scanner_task(void* param) {
     TickType_t lastWakeTime = xTaskGetTickCount();
-    const TickType_t scanInterval = pdMS_TO_TICKS(1000 / 3000);  // 3kHz scan rate
+    const TickType_t scanInterval = pdMS_TO_TICKS(1000 / 5000);  // 5kHz scan rate (32-encoder panel)
 
     while (1) {
         uint32_t cycleStart = micros();

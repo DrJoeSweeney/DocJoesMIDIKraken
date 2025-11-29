@@ -287,9 +287,9 @@ struct SessionFile {
 // ============================================================================
 
 struct SystemStatus {
-    bool i2cHealthy[7];           // Health of 7 ESP32s
-    uint32_t scanRate[7];         // Scan rate per ESP32 (Hz)
-    uint32_t dropRate[7];         // Dropped events per ESP32
+    bool i2cHealthy[9];           // Health of 9 I2C ESP32s (8 synth + 1 FX)
+    uint32_t scanRate[9];         // Scan rate per ESP32 (Hz)
+    uint32_t dropRate[9];         // Dropped events per ESP32
     uint32_t midiMessagesSent;    // Total MIDI messages sent
     uint32_t uptime;              // System uptime (seconds)
     float cpuUsage;               // CPU usage (0-100%)

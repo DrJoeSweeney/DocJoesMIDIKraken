@@ -13,10 +13,10 @@
  * Manages 3 parallel I2C buses for distributed ESP32 communication.
  * Uses interrupt-driven polling for sub-500µs latency.
  *
- * Bus Assignment:
- * - Bus 0 (Wire): ESP32 #1 (0x08), #2 (0x09)
- * - Bus 1 (Wire1): ESP32 #3 (0x0A), #4 (0x0B)
- * - Bus 2 (Wire2): ESP32 #5 (0x0C), #6 (0x0D), #7 (0x0E)
+ * Bus Assignment (32-Encoder Panel Design):
+ * - Bus 0 (Wire): ESP32 #1 (0x08), #2 (0x09), #3 (0x0A)
+ * - Bus 1 (Wire1): ESP32 #4 (0x0B), #5 (0x0C), #6 (0x0D)
+ * - Bus 2 (Wire2): ESP32 #7 (0x0E), #8 (0x0F), #9 (0x10)
  *
  * Features:
  * - 3 parallel I2C buses (1MHz Fast Mode+)
@@ -76,7 +76,7 @@ public:
 
     /**
      * Send command to specific ESP32
-     * @param address - Slave address (0x08 to 0x0E)
+     * @param address - Slave address (0x08 to 0x10)
      * @param command - Command code
      * @param data - Optional data bytes
      * @param dataLen - Length of data
@@ -121,7 +121,7 @@ private:
         DiagnosticMetrics metrics;
     };
 
-    static const uint8_t NUM_SLAVES = 7;
+    static const uint8_t NUM_SLAVES = 9;  // 8 synth panels + 1 FX panel (snapshot via separate interface)
     static const uint16_t EVENT_QUEUE_SIZE = 256;
 
     SlaveInfo m_slaves[NUM_SLAVES];
