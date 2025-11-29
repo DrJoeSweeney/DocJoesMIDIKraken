@@ -19,11 +19,20 @@
 // CONFIGURATION
 // ============================================================================
 // NOTE: This configuration is for a 32-encoder synth panel (8 total in system)
-// FX panel: 28 encoders, 11 shift registers, I2C 0x0C
-// Snapshot panel: 19 buttons, 3 shift registers, I2C 0x0D
-// Adjust values below for different node types before flashing
+//
+// I2C Address Assignment (9 I2C ESP32 nodes total):
+// - Bus 0 (Wire):  Synth #1-3 = 0x08, 0x09, 0x0A
+// - Bus 1 (Wire1): Synth #4-6 = 0x0B, 0x0C, 0x0D
+// - Bus 2 (Wire2): Synth #7-8 = 0x0E, 0x0F | FX #9 = 0x10
+//
+// Panel Configurations:
+// - Synth panels (#1-8): 32 encoders, 32 encoder buttons, 4 standalone = 13 shift registers
+// - FX panel (#9): 28 encoders, 28 encoder buttons = 11 shift registers
+// - Snapshot panel: 19 buttons, handled via separate interface (not I2C)
+//
+// IMPORTANT: Set I2C_ADDRESS below to match the physical panel position (0x08-0x10)
 
-// I2C Configuration (set to 0x08-0x0B for synth panels, 0x0C for FX, 0x0D for snapshot)
+// I2C Configuration
 #define I2C_ADDRESS 0x08
 #define I2C_SDA_PIN 21
 #define I2C_SCL_PIN 22
