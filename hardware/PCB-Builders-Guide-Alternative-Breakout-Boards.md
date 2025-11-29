@@ -198,7 +198,7 @@ ESP32 GPIO outputs: 3.3V logic levels
 | 4 | 74HC165 Breakout | Shift register boards | 1×4-chip + 3×3-chip |
 | 1 | LM1117-3.3 | 3.3V regulator | 800mA, SOT-223 or TO-220 |
 | 1 | LM7805 | 5V regulator | For ESP32 only |
-| 1 | ESP32-DevKitC | ESP32 dev board | 30-pin DIP |
+| 1 | ESP32-DevKitC | ESP32 dev board | 30-pin or 38-pin DIP (see ESP32-38Pin-Pinout-Reference.md) |
 | 32 | KY-050 | Rotary encoders | With integrated button |
 | 4 | Tactile switch | Standalone buttons | 6mm |
 | 2 | 4.7kΩ resistor | I2C pull-ups | 1/4W |

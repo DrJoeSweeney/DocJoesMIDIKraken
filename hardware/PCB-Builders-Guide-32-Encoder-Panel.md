@@ -58,7 +58,7 @@ Encoders/Buttons → Shift Registers (Parallel Load) → ESP32 (SPI Read) → Te
 
 | Qty | Part Number | Description | Package | Notes |
 |-----|-------------|-------------|---------|-------|
-| 1 | ESP32-DevKitC | ESP32 development board | 30-pin DIP | NodeMCU-32S or similar |
+| 1 | ESP32-DevKitC | ESP32 development board | 30-pin or 38-pin DIP | See ESP32-38Pin-Pinout-Reference.md |
 | 13 | 74HCT165N | 8-bit PISO shift register | DIP-16 | Must be HCT for 3.3V ESP32 compatibility |
 | 1 | LM7805 | 5V voltage regulator | TO-220 | 1A minimum |
 | 1 | 1N4001 | Rectifier diode (reverse polarity protection) | DO-41 | 1A, 50V |
@@ -216,6 +216,8 @@ Encoders/Buttons → Shift Registers (Parallel Load) → ESP32 (SPI Read) → Te
 ---
 
 ## ESP32 DevKit Connections
+
+> **Note:** Both 30-pin and 38-pin ESP32 DevKit boards are compatible. The GPIO numbers are the same; only the physical pin positions differ. For 38-pin pinout, see `ESP32-38Pin-Pinout-Reference.md`.
 
 ### ESP32 DevKitC 30-Pin Pinout
 
