@@ -6,6 +6,8 @@
 **Panel Type**: Synth Panel (32 encoders + 32 encoder buttons + 4 standalone buttons)
 **Board Layers**: 2-layer (Top + Bottom)
 
+> **📋 Alternative Design Available:** If you have existing 74HC165 breakout boards, see `PCB-Builders-Guide-Alternative-Breakout-Boards.md` for a 3.3V-based design that reuses your hardware.
+
 ---
 
 ## Table of Contents
